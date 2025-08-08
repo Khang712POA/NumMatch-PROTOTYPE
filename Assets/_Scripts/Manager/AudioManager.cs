@@ -23,6 +23,8 @@ public class AudioManager : MonoBehaviour
     [SerializeField] List<AudioElement> musicClips = new();
     [SerializeField] List<AudioElement> sfxClips = new();
 
+    private bool sfxMuted = false;
+
     private void Awake()
     {
         if (instance == null)
@@ -57,6 +59,7 @@ public class AudioManager : MonoBehaviour
 
     public void PlaySFX(string clipName)
     {
+        if (sfxMuted) return;
         sfx.PlayOneShot(sfxClips.Find(x => x.name.Equals(clipName)).clip);
     }
 
@@ -86,6 +89,7 @@ public class AudioManager : MonoBehaviour
     public void SetSFXMute(bool mute)
     {
         //SettingManager.Instance.currentSettings.sfxMute = mute;
+        sfxMuted = mute;
         sfx.gameObject.SetActive(!mute);
     }
 }

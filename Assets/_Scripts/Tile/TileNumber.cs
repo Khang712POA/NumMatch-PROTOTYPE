@@ -16,6 +16,7 @@ public class TileNumber : SaiMonoBehaviour
     public int Row => index / BoardConfig.ColumnCount;
     public int Col => index % BoardConfig.ColumnCount;
 
+    public bool isInPlay;
     public Vector2Int GridPosition { get; private set; }
 
     [SerializeField] private Color targetColor;
@@ -26,6 +27,9 @@ public class TileNumber : SaiMonoBehaviour
     public Image NumberImage => numberImage;
 
     [SerializeField] private Image backgroundImage;
+    [SerializeField] private Image gemImage;
+    public Image GemImage => gemImage;
+
     [SerializeField] private GameObject animationCircle;
     [SerializeField] private Button tileButton;
     public Button TileButton => tileButton;
@@ -35,9 +39,17 @@ public class TileNumber : SaiMonoBehaviour
     public ObjectShake ObjectShake => objectShake;
     [SerializeField] private Image circleRemove;
     public Image CircleRemove => circleRemove;
-
+    [SerializeField] private Sprite hint_Colored;
 
     public bool IsMatch;
+    public bool IsGem;
+    private GemType gemType;
+    public GemType GemType => gemType;
+    [SerializeField] Animator animator;
+    public void SetGemType(GemType gemType)
+    {
+        this.gemType = gemType;
+    }
     public TileNumber(int value, int index, int columnCount)
     {
         this.value = value;
@@ -61,8 +73,6 @@ public class TileNumber : SaiMonoBehaviour
     }
     private void OnTileClicked()
     {
-        Debug.Log("AAAAA");
-
         OnclickAnimationTile();
         GridManager.Instance.OnTileSelected(this);
         AudioManager.Instance.PlaySFX("sfx_choose_number");
@@ -72,7 +82,25 @@ public class TileNumber : SaiMonoBehaviour
         this.value = -1;
         this.circleRemove.fillAmount = 1;
     }
+    public void SetAnimation()
+    {
+        StartCoroutine(GemAnimation(gemType));
+    }
+    private IEnumerator GemAnimation(GemType gemType)
+    {
+        gemImage.maskable = false;
+        animator.enabled = true;    
 
+        yield return new WaitForSeconds(0.6f);//Wait Animation
+
+        StartCoroutine(AnimateTileFade(gemImage, 0.6f, true));
+
+        yield return new WaitForSeconds(0.8f);//Wait Move
+
+        gemImage.enabled = false;
+        animator.enabled = false;
+        UIManager.Instance.UpdateGemUI(GameManager.Instance.CurrentGemTypes);
+    }
     public void SetGridPosition(int index, int columnCount)
     {
         GridPosition = new Vector2Int(index / columnCount, index % columnCount);
@@ -81,18 +109,20 @@ public class TileNumber : SaiMonoBehaviour
     private void OnclickAnimationTile()
     {
         backgroundImage.gameObject.SetActive(true);
+        backgroundImage.color = targetColor;
 
         StopAllCoroutines(); // Ngăn hiệu ứng trước đó
 
-        StartCoroutine(AnimateTileEffect(backgroundImage, backgroundImage.color, targetColor, Vector3.one * 0.8f, Vector3.one, colorTransitionDuration));
+        StartCoroutine(AnimateTileEffect(backgroundImage, Vector3.one * 0.8f, Vector3.one, colorTransitionDuration));
     }
     public void OnTileRemoveAnimation()
     {
         circleRemove.gameObject.SetActive(true);
+        circleRemove.color = new Color32(101, 172, 241, 255);
 
-        StartCoroutine(AnimateTileEffect(circleRemove, circleRemove.color, targetColor, Vector3.one * 0.6f, Vector3.one, colorTransitionDuration));
+        StartCoroutine(AnimateTileEffect(circleRemove, Vector3.one * 0.6f, Vector3.one, colorTransitionDuration));
     }
-    private IEnumerator AnimateTileEffect(Image Image, Color fromColor, Color toColor, Vector3 fromScale, Vector3 toScale, float duration)
+    private IEnumerator AnimateTileEffect(Image Image, Vector3 fromScale, Vector3 toScale, float duration)
     {
         float time = 0f;
         Image.transform.localScale = fromScale;
@@ -102,13 +132,11 @@ public class TileNumber : SaiMonoBehaviour
             time += Time.deltaTime;
             float t = time / duration;
 
-            backgroundImage.color = Color.Lerp(fromColor, toColor, t);
             Image.transform.localScale = Vector3.Lerp(fromScale, toScale, t);
 
             yield return null;
         }
 
-        backgroundImage.color = toColor;
         Image.transform.localScale = toScale;
     }
     private IEnumerator AnimateTileFade(Image image, float duration, bool fadeOut)
@@ -143,25 +171,55 @@ public class TileNumber : SaiMonoBehaviour
     {
         yield return StartCoroutine(AnimateTileFade(image, 0.25f, true));
     }
+    public void TestCase()
+    {
+        isInPlay = false;
+    }
     public void ClearImage()
     {
-        backgroundImage.color = new Color32(194, 230, 239, 255);
         StopAllCoroutines();
         StartAnimateScaleCoroutine2(() => {
             animationCircle.SetActive(true);
         });
+        tileButton.interactable = false;
+        if (IsGem)
+        {
+            SetAnimation();
+            IsGem = false;
+        }
+        backgroundImage.color = new Color32(194, 230, 239, 255);
 
         numberImage.color = new Color32(30, 91, 102, 140);
+        circleRemove.gameObject.SetActive(false);
         IsMatch = true;
-        tileButton.interactable = false;
-    }  
-    public void CopyTile(TileNumber tileCopy)
+        isInPlay = false;
+    }
+    
+    public void CopyUpperTile(TileNumber tileUpper)
     {
-        this.value = tileCopy.Value;
-        this.IsMatch = tileCopy.IsMatch;
+        this.value = tileUpper.Value;
+        this.IsMatch = tileUpper.IsMatch;
+        this.isInPlay = tileUpper.isInPlay;
+        this.numberImage.color = tileUpper.NumberImage.color;
+        this.numberImage.sprite = tileUpper.NumberImage.sprite;
+        this.tileButton.interactable = tileUpper.TileButton.interactable;
+        if (tileUpper.IsGem)
+        {
+            this.IsGem = tileUpper.IsGem;
+            this.gemImage.sprite = tileUpper.GemImage.sprite;
+            this.backgroundImage.sprite = hint_Colored;
+            this.SetGemType(tileUpper.gemType);
+
+            //Reset
+            tileUpper.IsGem = false;
+            tileUpper.gemImage.gameObject.SetActive(false);
+        }    
+        this.animationCircle.SetActive(false);
+    }
+    public void CopyTileBoard(TileNumber tileCopy)
+    {
         this.numberImage.color = tileCopy.NumberImage.color;
         this.numberImage.sprite = tileCopy.NumberImage.sprite;
-        this.tileButton.interactable = tileCopy.TileButton.interactable;
     }
     public void SetImageNumberRemove()
     {
@@ -171,6 +229,8 @@ public class TileNumber : SaiMonoBehaviour
     {
         this.value = -1;
         this.index = index;
+        this.isInPlay = false;
+        this.IsMatch = false;
         this.numberImage.gameObject.SetActive(false);
     }
 
@@ -187,25 +247,42 @@ public class TileNumber : SaiMonoBehaviour
     {
         this.value = value;
         this.index = index;
+        this.isInPlay = true;
 
         if (numberImage != null)
         {
-            if(!activeAnimation) numberImage.gameObject.SetActive(true);
+            if (activeAnimation) numberImage.gameObject.SetActive(true);
+            else numberImage.gameObject.SetActive(false);
             numberImage.sprite = sprite;
+            numberImage.color = new Color32(30, 91, 102, 255);
             numberImage.enabled = sprite != null;
             this.tileButton.interactable = true;
+            backgroundImage.sprite = null;
+            gemImage.maskable = true;
+
         }
     }
     public void MoveNumberImageUp(float duration, int indexRemove)
     {
         this.numberImage.gameObject.SetActive(true);
+        if(IsGem)
+        {
+            this.gemImage.gameObject.SetActive(true);
+            StartCoroutine(MoveUpCoroutine(duration, indexRemove, gemImage));
+        }
         if (numberImage == null) return;
-        StartCoroutine(MoveUpCoroutine(duration, indexRemove));
+        StartCoroutine(MoveUpCoroutine(duration, indexRemove, numberImage));
+
     }
 
-    private IEnumerator MoveUpCoroutine(float duration, int indexRemove)
+    private IEnumerator MoveUpCoroutine(float duration, int indexRemove, Image image)
     {
-        RectTransform rect = numberImage.rectTransform;
+        if (image == gemImage)
+        {
+            Debug.Log("GemImage Move");
+        }
+
+        RectTransform rect = image.rectTransform;
         Vector2 startPos = rect.anchoredPosition;
         startPos.y -= indexRemove * 115f;
         Vector2 targetPos = new Vector2(startPos.x, startPos.y + indexRemove * 115f);
@@ -227,16 +304,20 @@ public class TileNumber : SaiMonoBehaviour
         value = -1;
 
         IsMatch = true; //Fix
+        this.isInPlay = false;
         tileButton.interactable = false;
         numberImage.color = new Color32(30, 91, 102, 140);
     }
     public void SetRemoveTile()
     {
         value = -1;
-
+        IsGem = false;
+        isInPlay = false;
         IsMatch = false; //Fix
         tileButton.interactable = false;
         numberImage.gameObject.SetActive(false);
+        gemImage.sprite = null;
+        gemImage.gameObject.SetActive(false);
     }
     public void SetValueNotNull()
     {
@@ -245,6 +326,7 @@ public class TileNumber : SaiMonoBehaviour
     public void SpinCircle()
     {
         circleRemove.rectTransform.localScale = Vector2.one * -1f;
+        circleRemove.color = new Color32(101, 172, 241, 255);
         circleRemove.gameObject.SetActive(true);
         circleRemove.fillAmount = 1;
 
@@ -312,5 +394,13 @@ public class TileNumber : SaiMonoBehaviour
         }
         // Gọi callback sau khi hoàn thành
         onComplete?.Invoke();
+    }
+
+    //
+    public void SetAsGem(Sprite spriteGem)
+    {
+        gemImage.sprite = spriteGem;
+        gemImage.gameObject.SetActive(true);
+        backgroundImage.sprite = hint_Colored;
     }
 }

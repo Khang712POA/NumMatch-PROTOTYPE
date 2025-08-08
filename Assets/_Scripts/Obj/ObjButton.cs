@@ -18,6 +18,8 @@ public class ObjButton : MonoBehaviour
 
     public void AddOnClickListener(UnityAction action)
     {
+        button.onClick.RemoveAllListeners(); // Xoá tránh trùng
+
         if (button != null)
             button.onClick.AddListener(action);
     }

@@ -1,17 +1,16 @@
-﻿using UnityEngine;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System;
-using System.Text.RegularExpressions;
+using UnityEngine;
 
-public class StageGenerator : MonoBehaviour
+public class MatchGenerator : MonoBehaviour
 {
     public int[] flatGrid;
     private void Start()
     {
-        flatGrid = GenerateStage(3);
-        FindAndCheckMatches(flatGrid, 3, 9);
-        PrintGrid(flatGrid, 3, 9);
+        //flatGrid = GenerateStage(3);
+        //FindAndCheckMatches(flatGrid, 3, 9);
+        //PrintGrid(flatGrid, 3, 9);
     }
 
     public int[] GenerateStage(int stage)
@@ -333,37 +332,5 @@ public class StageGenerator : MonoBehaviour
         return false;
     }
 
-    private void PrintGrid(int[] grid, int rows, int cols)
-    {
-        string output = "🎮 Stage Grid:\n";
-        int[] counts = new int[10]; // chỉ số 1 đến 9
 
-        for (int r = 0; r < rows; r++)
-        {
-            for (int c = 0; c < cols; c++)
-            {
-                int value = grid[r * cols + c];
-                output += value + " ";
-
-                if (value >= 1 && value <= 9)
-                    counts[value]++;
-            }
-            output += "\n";
-        }
-
-        output += "\n📊 Thống kê số lần xuất hiện:\n";
-        for (int i = 1; i <= 9; i++)
-        {
-            output += $"🔢 Số {i}: {counts[i]} lần\n";
-        }
-
-        output += "\n🚨 Cảnh báo nếu lệch phân phối:\n";
-        for (int i = 1; i <= 9; i++)
-        {
-            if (counts[i] < 1 || counts[i] > 4)
-                output += $"⚠️ Số {i} lệch phân phối: {counts[i]} lần\n";
-        }
-
-        Debug.Log(output);
-    }
 }

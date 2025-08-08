@@ -1,0 +1,8 @@
+Stage3:Pink=2,Orange=2
+Stage4:Orange=3,Purple=3
+Stage5:Pink=2,Orange=2,Purple=2
+Stage6:Pink=3,Orange=3
+Stage7:Orange=4,Pink=4
+Stage8:Orange=5,Purple=5
+Stage9:Pink=2,Orange=2,Purple=2
+Stage10:Pink=2,Orange=3,Pink=3

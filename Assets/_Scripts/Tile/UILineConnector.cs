@@ -12,6 +12,7 @@ public enum EquationType
 }
 public class UILineConnector : MonoBehaviour
 {
+    [SerializeField] private RectTransform content;
     [SerializeField] private Image lineImage;
     [SerializeField] private float duration = 1f; // Time Show Line
 
@@ -90,8 +91,7 @@ public class UILineConnector : MonoBehaviour
         switch (equationType)
         {
             case EquationType.StraighType1:
-                Debug.Log("CaseStraighType1");
-                Debug.Log($"indexRow: {indexRow}, indexColumn: {indexColumn}, minRow: {minRow}, maxRow: {maxRow}, minColumn: {minColumn}, maxColumn: {maxColumn}");
+                //Debug.Log($"indexRow: {indexRow}, indexColumn: {indexColumn}, minRow: {minRow}, maxRow: {maxRow}, minColumn: {minColumn}, maxColumn: {maxColumn}");
                 float addMinRow = minColumn;
                 float addIndexValue = 0;
                 if (indexColumn == 1 && minColumn == 0)
@@ -111,7 +111,7 @@ public class UILineConnector : MonoBehaviour
 
                 Debug.Log("Addd min Row: " + addMinRow + "addIndexValue:  " + addIndexValue);
                 float straighX = straightDefaultX + 115 * (addMinRow + 1) + addIndexValue;
-                float straighY = straightDefaultY - 115 * rowA;
+                float straighY = straightDefaultY - 115 * rowA + content.anchoredPosition.y;
                 lineImage.rectTransform.anchoredPosition = new Vector2(straighX, straighY);
                 lineImage.rectTransform.sizeDelta = new Vector2(straightWidth * indexColumn, witdhDefault);
                 break;
