@@ -4,181 +4,245 @@ using UnityEngine.UI;
 
 public class UIManager : SaiMonoBehaviour
 {
-    private static UIManager instance;
-    public static UIManager Instance => instance;
-    [Space(2)]
-    [Header("Prefab")]
+    public static UIManager Instance { get; private set; }
+
+    [Header("Prefabs")]
     [SerializeField] private GameObject uIGemTopPrefab;
     [SerializeField] private GameObject uIGemPrefab;
 
-
-    [Space(2)]
-    [Header("Button UI")]
+    [Header("Buttons")]
     [SerializeField] private ObjButton generateButton;
     [SerializeField] private ObjButton nextStageButton;
     [SerializeField] private ObjButton homeButton;
     [SerializeField] private ObjButton settingButton;
     [SerializeField] private ObjButton loseButton;
 
+    [Header("UI GameObjects")]
+    [SerializeField] private GameObject stageCompleteAnimation;
 
-    [Space(2)]
-    [Header("GameObject UI")]
-    [SerializeField] private GameObject stageCompeteAnimation;
-    public GameObject StageCompeteAnimation => stageCompeteAnimation;
+    [Header("RectTransforms")]
+    [SerializeField] private RectTransform uiFade;
+    [SerializeField] private RectTransform uiTop;
+    [SerializeField] private RectTransform uiBottom;
+    [SerializeField] private RectTransform uiLose;
+    [SerializeField] private RectTransform uiWin;
+    [SerializeField] private RectTransform uiSetting;
+    [SerializeField] RectTransform animationRemoveColumn1;
+    public RectTransform AnimationRemoveColumn1 => animationRemoveColumn1;
+    [SerializeField] RectTransform animationRemoveColumn2;
+    public RectTransform AnimationRemoveColumn2 => animationRemoveColumn2;
 
-    [Space(2)]
-    [Header("RectTransForm UI")]
-    [SerializeField] private RectTransform uIFade;
-    public RectTransform UIFade => uIFade;
-    [SerializeField] private RectTransform uITop;
-    public RectTransform UITop => uITop;
-    [SerializeField] private RectTransform uIBottom;
-    public RectTransform UIBottom => uIBottom;
-    [SerializeField] private RectTransform uILose;
-    public RectTransform UILose => uILose;
-    [SerializeField] private RectTransform uIWin;
-    public RectTransform UIWin => uIWin;
-    [SerializeField] private RectTransform uISetting;
-    public RectTransform UISetting => uISetting;
-
-    [Space(2)]
-    [Header("Holder UI")]
+    [Header("UI Holders")]
     [SerializeField] private RectTransform holderUIGemTop;
     [SerializeField] private RectTransform holderUIGemWins;
-    [SerializeField] private List<UIGemTop> uIGemTopList;   
+
+    private readonly List<UIGemTop> uiGemTopList = new();
+
+    #region Unity Callbacks
 
     protected override void Awake()
     {
         base.Awake();
-        if (instance != null)
+
+        if (Instance != null)
         {
-            Debug.LogError("Only 1 UIManager instance allowed!");
+            Debug.LogError("Only one UIManager instance allowed!");
+            Destroy(gameObject);
             return;
         }
-        instance = this; ;
+        Instance = this;
     }
+
     protected override void Start()
     {
-        generateButton.AddOnClickListener(OnGenerateValid);
-        homeButton.AddOnClickListener(BackHome);
-        settingButton.AddOnClickListener(ActiveSettingUI);
+        SetupButtonListeners();
     }
+
+    #endregion
+
+    #region Setup
+
+    private void SetupButtonListeners()
+    {
+        generateButton.AddOnClickListener(OnGenerateClicked);
+        homeButton.AddOnClickListener(OnBackHomeClicked);
+        settingButton.AddOnClickListener(OnSettingClicked);
+    }
+
+    #endregion
+
+    #region UIGemTop Management
+
     public void LoadUIGemTop()
     {
-        uIGemTopList.Clear();
-        foreach (Transform child in holderUIGemTop)
-        {
-            Destroy(child.gameObject);
-        }
-        var gemTypes = GameManager.Instance.CurrentGemTypes;
+        ClearChildren(holderUIGemTop);
+        uiGemTopList.Clear();
+
+        var gemTypes = GamePlayManager.Instance.CurrentGemTypes;
         foreach (var gem in gemTypes)
         {
             var obj = Instantiate(uIGemTopPrefab, holderUIGemTop);
-            //obj.name = $"Gem:{gem.GemType}_Count:{gem.Count}";
-            UIGemTop uIGemTop = obj.GetComponent<UIGemTop>();
-            uIGemTop.textUI.text = gem.Count.ToString();
-            uIGemTop.image.sprite = GameManager.Instance.GetSpriteGem(gem.GemType);
-            uIGemTop.GemType = gem.GemType;
+            var uiGemTop = obj.GetComponent<UIGemTop>();
+            uiGemTop.textUI.text = gem.Count.ToString();
+            uiGemTop.image.sprite = GamePlayManager.Instance.GetSpriteGem(gem.GemType);
+            uiGemTop.GemType = gem.GemType;
             obj.SetActive(true);
-            uIGemTopList.Add(uIGemTop);
+            uiGemTopList.Add(uiGemTop);
         }
     }
+
     public void UpdateGemUI(GemComponent[] gemComponents)
     {
-        foreach (GemComponent gemComponent in gemComponents)
+        foreach (var gemComponent in gemComponents)
         {
-            foreach (var uiGem in uIGemTopList)
+            var uiGem = uiGemTopList.Find(ui => ui.GemType == gemComponent.GemType);
+            if (uiGem != null)
             {
-                if (uiGem.GemType == gemComponent.GemType)
-                {
-                    uiGem.textUI.text = gemComponent.Count.ToString();
-                    break; 
-                }
+                uiGem.textUI.text = gemComponent.Count.ToString();
             }
         }
     }
-    private void OnResetStage()
-    {
-        uIFade.gameObject.SetActive(false);
-        UILose.gameObject.SetActive(false);
 
-        GameManager.Instance.ResetCurrentStage();
-        GridManager.Instance.StartNewStage(1);
-    }
-    private void OnNextStage()
-    {
-        Debug.Log("OnNextStage");
+    #endregion
 
-        uIFade.gameObject.SetActive(false);
-        UIWin.gameObject.SetActive(false);
-
-        GameManager.Instance.IncreaseNumberAdd();
-        GridManager.Instance.StartNewStage(GameManager.Instance.CurrentStage);
-        UpdateTextStage(GameManager.Instance.CurrentStage);
-    }
-    private void OnGenerateValid()
+    #region UI Control Methods
+    public void ActiveStageCompleteAnimation()
     {
-        if (GameManager.Instance.NumberGenerate < 1) return;
-
-        generateButton.gameObject.SetActive(false);
-        generateButton.gameObject.SetActive(true);
-        GameManager.Instance.DeductNumberAdd();
-        generateButton.GetComponentInChildren<Text>().text = GameManager.Instance.NumberGenerate.ToString();
-        GridManager.Instance.AnimationGenerate();
-        GridManager.Instance.CloneRemainingTilesToBottom();
-        Debug.Log("OnGenerateValid");
-    }
-    public void ResetTextGenerate()
-    {
-        generateButton.GetComponentInChildren<Text>().text = 6.ToString();
-    }
-    public void UpdateTextStage(int currentStage)
-    {
-        Transform textStageTransform = uITop.Find("TextStage");
-        if (textStageTransform == null) Debug.LogError("Not Find Text Stage");
-        textStageTransform.GetComponent<Text>().text = currentStage.ToString();
+        stageCompleteAnimation.gameObject.SetActive(true);
     }
     public void ActiveUILose()
     {
-        uIFade.gameObject.SetActive(true);
-        uILose.gameObject.SetActive(true);
+        uiFade.gameObject.SetActive(true);
+        uiLose.gameObject.SetActive(true);
 
-        loseButton.AddOnClickListener(OnResetStage);
-        
+        loseButton.AddOnClickListener(OnResetStageClicked);
     }
+
     public void ActiveUIWin()
     {
-        uIFade.gameObject.SetActive(true);
-        UIWin.gameObject.SetActive(true);
+        uiFade.gameObject.SetActive(true);
+        uiWin.gameObject.SetActive(true);
 
         LoadUIGemWin();
-        UIWin.Find("TextLevel").GetComponent<Text>().text = GameManager.Instance.CurrentStage + " COMPLETE";
+        var textLevel = uiWin.Find("TextLevel")?.GetComponent<Text>();
+        if (textLevel != null)
+        {
+            textLevel.text = $"{GamePlayManager.Instance.CurrentStage} COMPLETE";
+        }
 
-        nextStageButton.AddOnClickListener(OnNextStage);
+        nextStageButton.AddOnClickListener(OnNextStageClicked);
     }
+
     private void LoadUIGemWin()
     {
-        foreach (Transform child in holderUIGemWins)
-        {
-            Destroy(child.gameObject);
-        }
-        var gemTypes = GameManager.Instance.CurrentGemTypes;
+        ClearChildren(holderUIGemWins);
+
+        var gemTypes = GamePlayManager.Instance.CurrentGemTypes;
         foreach (var gem in gemTypes)
         {
             var obj = Instantiate(uIGemPrefab, holderUIGemWins);
-            //obj.name = $"Gem:{gem.GemType}_Count:{gem.Count}";
-            obj.GetComponent<Image>().sprite = GameManager.Instance.GetSpriteGem(gem.GemType);
-
+            var image = obj.GetComponent<Image>();
+            if (image != null)
+            {
+                image.sprite = GamePlayManager.Instance.GetSpriteGem(gem.GemType);
+            }
             obj.SetActive(true);
         }
     }
-    private void BackHome()
+
+    public void UpdateTextStage(int currentStage)
+    {
+        var textStageTransform = uiTop.Find("TextStage");
+        if (textStageTransform == null)
+        {
+            Debug.LogError("TextStage not found under uiTop");
+            return;
+        }
+
+        var textComponent = textStageTransform.GetComponent<Text>();
+        if (textComponent != null)
+        {
+            textComponent.text = currentStage.ToString();
+        }
+    }
+
+    public void ResetTextGenerate()
+    {
+        SetGenerateButtonText(6);
+    }
+
+    private void SetGenerateButtonText(int number)
+    {
+        var text = generateButton.GetComponentInChildren<Text>();
+        if (text != null)
+        {
+            text.text = number.ToString();
+        }
+    }
+
+    #endregion
+
+    #region Button Callbacks
+
+    private void OnGenerateClicked()
+    {
+        if (GamePlayManager.Instance.NumberGenerate < 1) return;
+
+        generateButton.gameObject.SetActive(false);
+        generateButton.gameObject.SetActive(true);
+
+        GamePlayManager.Instance.DeductNumberAdd();
+        SetGenerateButtonText(GamePlayManager.Instance.NumberGenerate);
+
+        GridManager.Instance.AnimationGenerate();
+        GridManager.Instance.CloneRemainingTilesToBottom();
+
+        Debug.Log("OnGenerateClicked");
+    }
+
+    private void OnResetStageClicked()
+    {
+        uiFade.gameObject.SetActive(false);
+        uiLose.gameObject.SetActive(false);
+
+        GamePlayManager.Instance.ResetCurrentStage();
+        GridManager.Instance.StartNewStage(1);
+    }
+
+    private void OnNextStageClicked()
+    {
+        Debug.Log("OnNextStageClicked");
+
+        uiFade.gameObject.SetActive(false);
+        uiWin.gameObject.SetActive(false);
+
+        GamePlayManager.Instance.IncreaseNumberAdd();
+        GridManager.Instance.StartNewStage(GamePlayManager.Instance.CurrentStage);
+        UpdateTextStage(GamePlayManager.Instance.CurrentStage);
+    }
+
+    private void OnBackHomeClicked()
     {
         ScenesManager.instance.LoadScene("GameHome");
     }
-    private void ActiveSettingUI()
+
+    private void OnSettingClicked()
     {
-        uIFade.gameObject.SetActive(true);
-        uISetting.gameObject.SetActive(true);
+        uiFade.gameObject.SetActive(true);
+        uiSetting.gameObject.SetActive(true);
     }
+
+    #endregion
+
+    #region Helpers
+
+    private void ClearChildren(Transform parent)
+    {
+        foreach (Transform child in parent)
+        {
+            Destroy(child.gameObject);
+        }
+    }
+
+    #endregion
 }

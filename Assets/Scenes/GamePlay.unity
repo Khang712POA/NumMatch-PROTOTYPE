@@ -3088,6 +3088,8 @@ Transform:
   - {fileID: 1231978086}
   - {fileID: 1019885152}
   - {fileID: 1740802248}
+  - {fileID: 1734659198}
+  - {fileID: 1266156779}
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3290,10 +3292,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 764059034}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be7b4e3d818854544b66864013d34feb, type: 3}
+  m_Script: {fileID: 11500000, guid: d2e8b1926dffb0b4ea728d53cec1f66c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  numberGenerate: 3
+  numberGenerate: 6
   currentStage: 1
   currentStageNext: 0
   currentGemTypes: []
@@ -4136,7 +4138,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 39eaf7c15f9dbb649ad69b5a83940aa0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  flatGrid: 
 --- !u!1 &1031539624
 GameObject:
   m_ObjectHideFlags: 0
@@ -4284,29 +4285,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lastRow: 0
+  numberTile: 0
+  imageNumbers: []
   tileNumbers: []
   tileNumbersShake: []
   selectedTiles: []
-  imageNumbers: []
   holderTile: {fileID: 546593404}
-  TitlePrefab: {fileID: 5273208077606012851, guid: 446cf90dc0b13ca4191b6a12119cd5dd, type: 3}
-  AnimationRemoveColumn1: {fileID: 1889799183}
-  AnimationRemoveColumn2: {fileID: 927642552}
-  uILineConnector: {fileID: 551419378}
+  tilePrefab: {fileID: 5273208077606012851, guid: 446cf90dc0b13ca4191b6a12119cd5dd, type: 3}
+  uiLineConnector: {fileID: 551419378}
   gridBoardCopy: {fileID: 1231978087}
   matchGenerator: {fileID: 1019885153}
-  countMatch: 0
-  countCheck: 0
+  gemSpawner: {fileID: 1266156780}
   testCase:
     startRow: 0
-    endRow: 1
-    indexRowRemove: 2
+    endRow: 0
+    indexRowRemove: 0
     rowA: 0
-    rowB: 1
-  scrollRect: {fileID: 0}
-  contTent: {fileID: 546593404}
-  columnCount: 9
-  availableGemTypes: []
+    rowB: 0
 --- !u!1 &1132317875
 GameObject:
   m_ObjectHideFlags: 0
@@ -5267,6 +5262,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1263506979}
   m_CullTransparentMesh: 1
+--- !u!1 &1266156778
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1266156779}
+  - component: {fileID: 1266156780}
+  m_Layer: 0
+  m_Name: GemSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1266156779
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1266156778}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 715269179}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1266156780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1266156778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ef03af2909dd5247955af60e3c1784a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  availableGemTypes: []
 --- !u!1 &1269185283
 GameObject:
   m_ObjectHideFlags: 0
@@ -6675,16 +6715,62 @@ MonoBehaviour:
   homeButton: {fileID: 1397773690}
   settingButton: {fileID: 1621288276}
   loseButton: {fileID: 2122580603}
-  stageCompeteAnimation: {fileID: 1964948218}
-  uIFade: {fileID: 2132022996}
-  uITop: {fileID: 1258715919}
-  uIBottom: {fileID: 1651154268}
-  uILose: {fileID: 971506882}
-  uIWin: {fileID: 1607811109}
-  uISetting: {fileID: 1031539625}
+  stageCompleteAnimation: {fileID: 1964948218}
+  uiFade: {fileID: 2132022996}
+  uiTop: {fileID: 1258715919}
+  uiBottom: {fileID: 1651154268}
+  uiLose: {fileID: 971506882}
+  uiWin: {fileID: 1607811109}
+  uiSetting: {fileID: 1031539625}
+  animationRemoveColumn1: {fileID: 1889799183}
+  animationRemoveColumn2: {fileID: 927642552}
   holderUIGemTop: {fileID: 813009265}
   holderUIGemWins: {fileID: 880203225}
-  uIGemTopList: []
+--- !u!1 &1734659197
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1734659198}
+  - component: {fileID: 1734659199}
+  m_Layer: 0
+  m_Name: Gametest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1734659198
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1734659197}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 715269179}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1734659199
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1734659197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1568363ffc44baa4581b9f7b35fc4d1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  input: 953814187134947876527915838447546856972569653461523292118741564897218632132645316974542558239279633
 --- !u!1 &1739935655
 GameObject:
   m_ObjectHideFlags: 0

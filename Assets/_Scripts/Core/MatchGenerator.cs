@@ -1,18 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 public class MatchGenerator : MonoBehaviour
 {
-    public int[] flatGrid;
-    private void Start()
-    {
-        //flatGrid = GenerateStage(3);
-        //FindAndCheckMatches(flatGrid, 3, 9);
-        //PrintGrid(flatGrid, 3, 9);
-    }
-
     public int[] GenerateStage(int stage)
     {
         const int rows = 3;
@@ -331,6 +324,84 @@ public class MatchGenerator : MonoBehaviour
 
         return false;
     }
+    public void FindAndCheckMatches(int[] flatGrid)
+    {
+        HashSet<int> matched = new HashSet<int>();
+        int totalMatches = 0;
 
+        int cols = BoardConfig.ColumnCount;
+        int rows = flatGrid.Length / cols;
 
+        for (int i = 0; i < flatGrid.Length; i++)
+        {
+            if (flatGrid[i] == 0 || matched.Contains(i)) continue;
+
+            int r1 = i / cols;
+            int c1 = i % cols;
+
+            for (int j = 0; j < flatGrid.Length; j++)
+            {
+                if (i == j || flatGrid[j] == 0 || matched.Contains(j)) continue;
+
+                int r2 = j / cols;
+                int c2 = j % cols;
+
+                int val1 = flatGrid[i];
+                int val2 = flatGrid[j];
+
+                bool isSame = val1 == val2;
+                bool isSumTen = val1 + val2 == 10;
+
+                if ((isSame || isSumTen) && IsPathClear1D(flatGrid, r1, c1, r2, c2, rows, cols))
+                {
+                    matched.Add(i);
+                    matched.Add(j);
+                    totalMatches++;
+                    Debug.Log($"✅ Match: {val1} ({r1}, {c1}) <-> {val2} ({r2}, {c2})");
+
+                    CheckSurroundingForPotentialMatch1D(flatGrid, r1, c1, val1, matched, rows, cols);
+                    CheckSurroundingForPotentialMatch1D(flatGrid, r2, c2, val2, matched, rows, cols);
+                    break;
+                }
+            }
+        }
+
+        Debug.Log($"🔍 Tổng số cặp match được: {totalMatches}");
+    }
+    public void PrintGrid(int[] grid)
+    {
+        int cols = 9; // Số cột mặc định là 9
+        int rows = grid.Length / cols;
+
+        string output = "🎮 Stage Grid:\n";
+        int[] counts = new int[10]; // Chỉ số từ 1 đến 9
+
+        for (int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                int value = grid[r * cols + c];
+                output += value + " ";
+
+                if (value >= 1 && value <= 9)
+                    counts[value]++;
+            }
+            output += "\n";
+        }
+
+        output += "\n📊 Thống kê số lần xuất hiện:\n";
+        for (int i = 1; i <= 9; i++)
+        {
+            output += $"🔢 Số {i}: {counts[i]} lần\n";
+        }
+
+        output += "\n🚨 Cảnh báo nếu lệch phân phối:\n";
+        for (int i = 1; i <= 9; i++)
+        {
+            if (counts[i] < 1 || counts[i] > 4)
+                output += $"⚠️ Số {i} lệch phân phối: {counts[i]} lần\n";
+        }
+
+        Debug.Log(output);
+    }
 }

@@ -365,7 +365,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   value: 0
   index: 0
-  isInPlay: 0
   targetColor: {r: 0.74509805, g: 0.93333334, b: 0.90588236, a: 1}
   colorTransitionDuration: 0.15
   shrinkDuration: 0.4
@@ -376,9 +375,7 @@ MonoBehaviour:
   tileButton: {fileID: 207908253123522269}
   objectShake: {fileID: 8772985185171865750}
   circleRemove: {fileID: 1199590317021179584}
-  hint_Colored: {fileID: 21300000, guid: e410b56fa382d3b46a6554c9998968de, type: 3}
-  IsMatch: 0
-  IsGem: 0
+  hintColored: {fileID: 21300000, guid: e410b56fa382d3b46a6554c9998968de, type: 3}
   animator: {fileID: 868525373}
 --- !u!114 &8772985185171865750
 MonoBehaviour:

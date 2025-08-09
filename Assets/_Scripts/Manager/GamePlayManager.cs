@@ -4,10 +4,10 @@ using UnityEngine;
 using System.IO;
 using System.Linq;
 
-public class GameManager : SaiMonoBehaviour
+public class GamePlayManager : SaiMonoBehaviour
 {
-    private static GameManager instance;
-    public static GameManager Instance => instance;
+    private static GamePlayManager instance;
+    public static GamePlayManager Instance => instance;
     [SerializeField] private int numberGenerate = 6;
     [SerializeField] private int currentStage = 1;
     [SerializeField] private int currentStageNext = 0;
@@ -158,6 +158,4 @@ public class GameManager : SaiMonoBehaviour
         Debug.Log($"All Gems Depleted: {result}");
         return result;
     }
-
-
 }

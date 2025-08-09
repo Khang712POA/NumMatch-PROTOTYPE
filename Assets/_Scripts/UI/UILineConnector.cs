@@ -109,7 +109,6 @@ public class UILineConnector : MonoBehaviour
                     addIndexValue = baseValue * (indexColumn + 1);
                 }
 
-                Debug.Log("Addd min Row: " + addMinRow + "addIndexValue:  " + addIndexValue);
                 float straighX = straightDefaultX + 115 * (addMinRow + 1) + addIndexValue;
                 float straighY = straightDefaultY - 115 * rowA + content.anchoredPosition.y;
                 lineImage.rectTransform.anchoredPosition = new Vector2(straighX, straighY);
