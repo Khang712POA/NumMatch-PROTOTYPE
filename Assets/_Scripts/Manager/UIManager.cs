@@ -213,7 +213,7 @@ public class UIManager : SaiMonoBehaviour
         uiLose.gameObject.SetActive(false);
 
         GamePlayManager.Instance.ResetCurrentStage();
-        GridManager.Instance.StartNewStage(1, GamePlayManager.Instance.GameMode);
+        GridManager.Instance.StartNewStage(1, GameManager.Instance.CurrentMode);
     }
 
     private void OnNextStageClicked()
@@ -224,7 +224,7 @@ public class UIManager : SaiMonoBehaviour
         uiWin.gameObject.SetActive(false);
 
         GamePlayManager.Instance.IncreaseNumberAdd();
-        GridManager.Instance.StartNewStage(GamePlayManager.Instance.CurrentStage, GamePlayManager.Instance.GameMode);
+        GridManager.Instance.StartNewStage(GamePlayManager.Instance.CurrentStage, GameManager.Instance.CurrentMode);
         UpdateTextStage(GamePlayManager.Instance.CurrentStage);
     }
 

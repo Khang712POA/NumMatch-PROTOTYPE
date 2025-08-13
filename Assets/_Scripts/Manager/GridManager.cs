@@ -61,7 +61,8 @@ public class GridManager : SaiMonoBehaviour
 
     protected override void Start()
     {
-        StartNewStage(GamePlayManager.Instance.CurrentStage, GamePlayManager.Instance.GameMode);
+
+        StartNewStage(GamePlayManager.Instance.CurrentStage, GameManager.Instance.CurrentMode);
     }
 
     protected override void LoadComponents()
@@ -142,7 +143,7 @@ public class GridManager : SaiMonoBehaviour
         bool hasRemainingMatches = FindAndCheckMatches(
             tileNumbers.Where(tile => tile.Value != -1).ToList()
         );
-        if(GamePlayManager.Instance.GameMode == GameMode.Gem) //Clear Gem
+        if(GameManager.Instance.CurrentMode == GameMode.Gem) //Clear Gem
         {
             if(GamePlayManager.Instance.AreAllGemsDepleted())
             {
@@ -159,7 +160,7 @@ public class GridManager : SaiMonoBehaviour
     }
     private void OnCheckWinGame()
     {
-        if (GamePlayManager.Instance.GameMode == GameMode.Gem && GamePlayManager.Instance.AreAllGemsDepleted())
+        if (GameManager.Instance.CurrentMode == GameMode.Gem && GamePlayManager.Instance.AreAllGemsDepleted())
         {
             UIManager.Instance.ActiveUIWin();
             return;
@@ -170,7 +171,7 @@ public class GridManager : SaiMonoBehaviour
         StageCompeteAnimationCoroutine(() =>
         {
             GamePlayManager.Instance.IncreaseNumberAdd();
-            StartNewStage(GamePlayManager.Instance.CurrentStage, GamePlayManager.Instance.GameMode);
+            StartNewStage(GamePlayManager.Instance.CurrentStage, GameManager.Instance.CurrentMode);
             UIManager.Instance.UpdateTextStage(GamePlayManager.Instance.CurrentStage);
             UIManager.Instance.DeactiveStageCompleteAnimation();
         });
@@ -919,7 +920,7 @@ public class GridManager : SaiMonoBehaviour
             targetTile.SetTileNumber(targetIndex, sourceTile.Value, sourceTile.NumberImage.sprite, false);
         }
 
-        if (GamePlayManager.Instance.GameMode == GameMode.Gem)
+        if (GameManager.Instance.CurrentMode == GameMode.Gem)
         {
             var tilesToSpawnGems = tileNumbers
                 .Skip(indexStart)

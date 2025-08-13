@@ -12,8 +12,6 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     public GameMode CurrentMode { get; private set; }
 
-    public event Action<GameMode> OnSetMode;
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -31,7 +29,6 @@ public class GameManager : MonoBehaviour
         // Load luật chơi tương ứng
         ApplyModeSettings();
 
-        OnSetMode?.Invoke(mode);
     }
 
     private void ApplyModeSettings()

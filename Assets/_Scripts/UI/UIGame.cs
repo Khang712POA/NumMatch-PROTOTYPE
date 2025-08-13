@@ -24,15 +24,6 @@ public class UIGame : MonoBehaviour
     private void LoadSceneAndSetMode(string sceneName, GameMode mode)
     {
         ScenesManager.instance.LoadScene(sceneName);
-        SceneManager.sceneLoaded += OnLoaded;
-
-        void OnLoaded(Scene scene, LoadSceneMode loadMode)
-        {
-            if (scene.name == sceneName)
-            {
-                GameManager.Instance.SetMode(mode);
-                SceneManager.sceneLoaded -= OnLoaded; // Gỡ để tránh gọi lại
-            }
-        }
+        GameManager.Instance.SetMode(mode);
     }
 }
