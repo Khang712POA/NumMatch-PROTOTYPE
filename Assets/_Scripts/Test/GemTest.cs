@@ -11,10 +11,30 @@ public class GemTest : MonoBehaviour
         int[] board = ConvertStringToBoard(input);
         PrintGrid(board);
         var solver = new GemCollectorSolver(board, 10, 9);
-        solver.Solve();
-
+        solver.Solve(5);
+        LogCollectedArray(solver.collected, 9);
         //var moveAlgorithm = new MoveAlgorithm(board, 5, 9);
         //moveAlgorithm.SolveAndSaveTop10("Assets/Data/output.txt");
+    }
+    public void LogCollectedArray(bool[] collected, int cols = 9)
+    {
+        int rows = collected.Length / cols;
+        if (collected.Length % cols != 0)
+            rows += 1; // nếu không chia hết thì thêm 1 dòng
+
+        for (int r = 0; r < rows; r++)
+        {
+            string line = $"Row {r}: ";
+            for (int c = 0; c < cols; c++)
+            {
+                int idx = r * cols + c;
+                if (idx >= collected.Length)
+                    break;
+
+                line += collected[idx] ? "+ " : "- ";
+            }
+            Debug.Log(line);
+        }
     }
     public int[] ConvertStringToBoard(string input)
     {

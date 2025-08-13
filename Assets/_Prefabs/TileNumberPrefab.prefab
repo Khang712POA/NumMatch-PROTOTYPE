@@ -35,7 +35,7 @@ RectTransform:
   - {fileID: 6636767363081066332}
   - {fileID: 1015194332615511269}
   m_Father: {fileID: 3148507574302693457}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -178,7 +178,7 @@ RectTransform:
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 3148507574302693457}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -259,8 +259,8 @@ RectTransform:
   - {fileID: 3065853185518458721}
   - {fileID: 1548006018668007895}
   - {fileID: 6453463124842645731}
-  - {fileID: 9063357453662776624}
   - {fileID: 8927161033180606801}
+  - {fileID: 9063357453662776624}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -365,9 +365,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   value: 0
   index: 0
+  isInPlay: 0
+  isMatch: 0
+  isGem: 0
   targetColor: {r: 0.74509805, g: 0.93333334, b: 0.90588236, a: 1}
   colorTransitionDuration: 0.15
-  shrinkDuration: 0.4
   numberImage: {fileID: 3676783628094966441}
   backgroundImage: {fileID: 3907275675641319615}
   gemImage: {fileID: 4605182626881787248}

@@ -15,12 +15,16 @@ public class TileNumber : SaiMonoBehaviour
     public int Row => index / BoardConfig.ColumnCount;
     public int Col => index % BoardConfig.ColumnCount;
 
-    public bool IsInPlay { get; private set; }
+    [SerializeField] bool isInPlay;
+    public bool IsInPlay => isInPlay;
+    [SerializeField] bool isMatch;
+    public bool IsMatch => isMatch;
+    [SerializeField] bool isGem;
+    public bool IsGem => isGem;
 
     [Header("Color & Animation Settings")]
     [SerializeField] private Color targetColor;
     [SerializeField] private float colorTransitionDuration = 0.2f;
-    [SerializeField] private float shrinkDuration = 0.6f;
 
     [Header("UI References")]
     [SerializeField] private Image numberImage;
@@ -45,9 +49,6 @@ public class TileNumber : SaiMonoBehaviour
     private GemType gemType;
     public GemType GemType => gemType;
 
-    public bool IsMatch { get; private set; }
-    public bool IsGem { get; private set; }
-
     [SerializeField] private Animator animator;
 
     #region Unity Callbacks
@@ -65,7 +66,7 @@ public class TileNumber : SaiMonoBehaviour
     }
     public void SetIsInPlayFalse()
     {
-        IsInPlay = false;
+        isInPlay = false;
     }
     public void InitButton()
     {
@@ -213,22 +214,22 @@ public class TileNumber : SaiMonoBehaviour
         if (IsGem)
         {
             SetAnimation();
-            IsGem = false;
+            isGem = false;
         }
 
         backgroundImage.color = new Color32(194, 230, 239, 255);
         numberImage.color = new Color32(30, 91, 102, 140);
         circleRemove.gameObject.SetActive(false);
 
-        IsMatch = true;
-        IsInPlay = false;
+        isMatch = true;
+        isInPlay = false;
     }
 
     public void CopyUpperTile(TileNumber tileUpper)
     {
         value = tileUpper.Value;
-        IsMatch = tileUpper.IsMatch;
-        IsInPlay = tileUpper.IsInPlay;
+        isMatch = tileUpper.IsMatch;
+        isInPlay = tileUpper.IsInPlay;
 
         numberImage.color = tileUpper.NumberImage.color;
         numberImage.sprite = tileUpper.NumberImage.sprite;
@@ -236,19 +237,22 @@ public class TileNumber : SaiMonoBehaviour
 
         if (tileUpper.IsGem)
         {
-            IsGem = true;
+            isGem = true;
             gemImage.sprite = tileUpper.GemImage.sprite;
             backgroundImage.sprite = hintColored;
             SetAsGem(tileUpper.GemImage.sprite, tileUpper.GemType);
 
             // Reset upper tile
-            tileUpper.IsGem = false;
-            tileUpper.gemImage.gameObject.SetActive(false);
+            tileUpper.RessetGem();
         }
 
         animationCircle.SetActive(false);
     }
-
+    public void RessetGem()
+    {
+        isGem = false;
+        gemImage.gameObject.SetActive(false);
+    }
     public void CopyTileBoard(TileNumber tileCopy)
     {
         numberImage.color = tileCopy.NumberImage.color;
@@ -264,8 +268,8 @@ public class TileNumber : SaiMonoBehaviour
     {
         value = -1;
         index = newIndex;
-        IsInPlay = false;
-        IsMatch = false;
+        isInPlay = false;
+        isMatch = false;
         numberImage.gameObject.SetActive(false);
     }
 
@@ -283,16 +287,18 @@ public class TileNumber : SaiMonoBehaviour
     {
         value = newValue;
         index = newIndex;
-        IsInPlay = true;
+        isInPlay = true;
 
         if (numberImage != null)
         {
+            animationCircle.SetActive(false);
             numberImage.gameObject.SetActive(activeAnimation);
             numberImage.sprite = sprite;
             numberImage.color = new Color32(30, 91, 102, 255);
             numberImage.enabled = sprite != null;
             tileButton.interactable = true;
             backgroundImage.sprite = null;
+            backgroundImage.gameObject.SetActive(false);
             gemImage.maskable = true;
         }
     }
@@ -334,8 +340,8 @@ public class TileNumber : SaiMonoBehaviour
     public void MarkAsMatched()
     {
         value = -1;
-        IsMatch = true;
-        IsInPlay = false;
+        isMatch = true;
+        isInPlay = false;
         tileButton.interactable = false;
         numberImage.color = new Color32(30, 91, 102, 140);
     }
@@ -343,9 +349,9 @@ public class TileNumber : SaiMonoBehaviour
     public void SetRemoveTile()
     {
         value = -1;
-        IsGem = false;
-        IsInPlay = false;
-        IsMatch = false;
+        isGem = false;
+        isInPlay = false;
+        isMatch = false;
         tileButton.interactable = false;
         numberImage.gameObject.SetActive(false);
         gemImage.sprite = null;
@@ -359,7 +365,7 @@ public class TileNumber : SaiMonoBehaviour
     public void StartAnimateScaleCoroutine(Action onComplete)
     {
         backgroundImage.gameObject.SetActive(true);
-        StartCoroutine(AnimateScale(Vector2.one * 0.9f, 0.15f, backgroundImage, onComplete));
+        StartCoroutine(AnimateScale(Vector2.one * 0.9f, 0.23f, backgroundImage, onComplete));
     }
     private IEnumerator AnimateScale(Vector2 fromScale, float decreaseAmount, Image image, Action onComplete)
     {
@@ -374,7 +380,7 @@ public class TileNumber : SaiMonoBehaviour
 
             image.rectTransform.localScale = newScale;
         }
-
+        image.rectTransform.localScale = new Vector2(0, 0);
         onComplete?.Invoke();
     }
 
@@ -383,7 +389,7 @@ public class TileNumber : SaiMonoBehaviour
         gemImage.sprite = spriteGem;
         gemImage.gameObject.SetActive(true);
         backgroundImage.sprite = hintColored;
-        IsGem = true;
+        isGem = true;
         gemImage.enabled = true;
         gemImage.color = new Color32(255, 255, 255, 255);
         this.gemType = gemType;

@@ -108,7 +108,14 @@ public class UIManager : SaiMonoBehaviour
     #region UI Control Methods
     public void ActiveStageCompleteAnimation()
     {
+        stageCompleteAnimation.gameObject.SetActive(false);
+
         stageCompleteAnimation.gameObject.SetActive(true);
+
+    }
+    public void DeactiveStageCompleteAnimation()
+    {
+        stageCompleteAnimation.gameObject.SetActive(false);
     }
     public void ActiveUILose()
     {
@@ -206,7 +213,7 @@ public class UIManager : SaiMonoBehaviour
         uiLose.gameObject.SetActive(false);
 
         GamePlayManager.Instance.ResetCurrentStage();
-        GridManager.Instance.StartNewStage(1);
+        GridManager.Instance.StartNewStage(1, GamePlayManager.Instance.GameMode);
     }
 
     private void OnNextStageClicked()
@@ -217,7 +224,7 @@ public class UIManager : SaiMonoBehaviour
         uiWin.gameObject.SetActive(false);
 
         GamePlayManager.Instance.IncreaseNumberAdd();
-        GridManager.Instance.StartNewStage(GamePlayManager.Instance.CurrentStage);
+        GridManager.Instance.StartNewStage(GamePlayManager.Instance.CurrentStage, GamePlayManager.Instance.GameMode);
         UpdateTextStage(GamePlayManager.Instance.CurrentStage);
     }
 

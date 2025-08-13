@@ -61,7 +61,7 @@ public class GridManager : SaiMonoBehaviour
 
     protected override void Start()
     {
-        StartNewStage(GamePlayManager.Instance.CurrentStage);
+        StartNewStage(GamePlayManager.Instance.CurrentStage, GamePlayManager.Instance.GameMode);
     }
 
     protected override void LoadComponents()
@@ -81,7 +81,7 @@ public class GridManager : SaiMonoBehaviour
             Debug.LogWarning("Không tìm thấy ảnh trong Resources/_Sprites/number");
         }
     }
-    public void StartNewStage(int stage)
+    public void StartNewStage(int stage, GameMode gameMode)
     {
         CreateDisplay();
         tileNumbersShake.Clear();
@@ -106,7 +106,7 @@ public class GridManager : SaiMonoBehaviour
             StartCoroutine(SetNumberTilesSequentially(0, newData.Length));
         }
 
-        if (stage >= 3)
+        if (gameMode == GameMode.Gem)
         {
             SetupGemsForStage(stage);
         }
@@ -142,6 +142,13 @@ public class GridManager : SaiMonoBehaviour
         bool hasRemainingMatches = FindAndCheckMatches(
             tileNumbers.Where(tile => tile.Value != -1).ToList()
         );
+        if(GamePlayManager.Instance.GameMode == GameMode.Gem) //Clear Gem
+        {
+            if(GamePlayManager.Instance.AreAllGemsDepleted())
+            {
+                return;
+            }
+        }
 
         if (hasRemainingMatches || GamePlayManager.Instance.NumberGenerate >= 1) //&& Gem
             return;
@@ -152,26 +159,23 @@ public class GridManager : SaiMonoBehaviour
     }
     private void OnCheckWinGame()
     {
-        if (GamePlayManager.Instance.CurrentStage < 3)
+        if (GamePlayManager.Instance.GameMode == GameMode.Gem && GamePlayManager.Instance.AreAllGemsDepleted())
         {
-            foreach (var tile in tileNumbers)
-            {
-                if (tile.IsInPlay) return;
-            }
-            StageCompeteAnimationCoroutine(() =>
-            {
-                GamePlayManager.Instance.IncreaseNumberAdd();
-                StartNewStage(GamePlayManager.Instance.CurrentStage);
-                UIManager.Instance.UpdateTextStage(GamePlayManager.Instance.CurrentStage);
-                UIManager.Instance.ActiveStageCompleteAnimation();
-            });
+            UIManager.Instance.ActiveUIWin();
+            return;
         }
-        else
+
+        if (tileNumbers.Any(tile => tile.IsInPlay)) return;
+
+        StageCompeteAnimationCoroutine(() =>
         {
-            bool AreAllGemsDepleted = GamePlayManager.Instance.AreAllGemsDepleted();
-            if (AreAllGemsDepleted) UIManager.Instance.ActiveUIWin();
-        }
+            GamePlayManager.Instance.IncreaseNumberAdd();
+            StartNewStage(GamePlayManager.Instance.CurrentStage, GamePlayManager.Instance.GameMode);
+            UIManager.Instance.UpdateTextStage(GamePlayManager.Instance.CurrentStage);
+            UIManager.Instance.DeactiveStageCompleteAnimation();
+        });
     }
+
     private bool CheckPointX2()
     {
         return UnityEngine.Random.value < 0.05f;
@@ -645,8 +649,6 @@ public class GridManager : SaiMonoBehaviour
                 OnCheckLoseGame();
             }));
 
-            if (GamePlayManager.Instance.CurrentStage < 3)
-                OnCheckWinGame();
         }
         else
         {
@@ -655,8 +657,7 @@ public class GridManager : SaiMonoBehaviour
 
         AudioManager.Instance.PlaySFX("sfx_pair_clear");
 
-        if (GamePlayManager.Instance.CurrentStage >= 3)
-            OnCheckWinGame();
+        OnCheckWinGame();
 
         selectedTiles.Clear();
     }
@@ -918,7 +919,7 @@ public class GridManager : SaiMonoBehaviour
             targetTile.SetTileNumber(targetIndex, sourceTile.Value, sourceTile.NumberImage.sprite, false);
         }
 
-        if (GamePlayManager.Instance.CurrentStage >= 3)
+        if (GamePlayManager.Instance.GameMode == GameMode.Gem)
         {
             var tilesToSpawnGems = tileNumbers
                 .Skip(indexStart)
@@ -1003,7 +1004,6 @@ public class GridManager : SaiMonoBehaviour
         StartCoroutine(RemoveRowCoroutine(indexRow, lastRow, tileA, tileB, false, false, () =>
         {
 
-            Debug.Log("EndRow: " + endRow + "|LastRow: " + lastRow);
             if (endRow < lastRow)
             {
                 for (int row = endRow; row <= lastRow; row++)
@@ -1026,9 +1026,8 @@ public class GridManager : SaiMonoBehaviour
                     }
                 }
             }
-            Debug.Log("✅ RemoveRow hoàn tất, thực hiện logic tiếp theo...");
+            OnCheckWinGame();
         }));
-        OnCheckWinGame();
         AudioManager.Instance.PlaySFX("sfx_row_clear");
     }
 }

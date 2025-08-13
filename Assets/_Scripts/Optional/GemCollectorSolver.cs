@@ -7,7 +7,10 @@ public class GemCollectorSolver
 {
     private int[] board;
     private int rows, cols;
-    private bool[] collected;
+    public bool[] collected;
+    int totalMove = 0;
+    int collectedValue = 0;
+    int sumBestValue = 0;
 
     public GemCollectorSolver(int[] board, int rows, int cols)
     {
@@ -15,148 +18,89 @@ public class GemCollectorSolver
         this.rows = rows;
         this.cols = cols;
         collected = new bool[board.Length];
+        sumBestValue = SumBestValue();
+    }
+    private bool IsEnoughFivesCollected(int collected)
+    {
+        int total = SumBestValue();
+
+        int neededFives = (total / 2) * 2;
+
+        if (collected >= neededFives)
+        {
+            Debug.Log($"🎯 Đã thu thập đủ {neededFives} số 5, dừng lại.");
+            return true;
+        }
+        return false;
+    }
+    private int SumBestValue()
+    {
+        int count = 0;
+        for (int i = 0; i < board.Length; i++)
+        {
+            if (board[i] == 5)
+                count++;
+        }
+        return count;
     }
 
-    public void Solve()
+    public void Solve(int bestValue)
     {
-        int totalMove = 0;
+        int countBestValue = board.Count(x => x == bestValue);
+        Console.WriteLine($"Số lượng phần tử bằng {bestValue}: {countBestValue}");
 
-        while (true)
+        var allPairs = FindAllPairs(bestValue);
+        foreach (var p in allPairs)
         {
-            var pairs = FindAllValidPairs();
-            if (pairs.Count == 0) break;
-
-            var bestPair = pairs.OrderBy(p => p.move).First();
-
-            var obstacles = FindObstacles(bestPair).Distinct().ToList();
-            obstacles = obstacles.OrderBy(o => o.move).ToList();
-
-            foreach (var obs in obstacles)
-            {
-                // Khởi tạo tập kiểm tra để tránh lặp vô hạn
-                var visiting = new HashSet<int>();
-
-                // Kiểm tra và tìm cặp match có thể loại bỏ vật cản obs.index
-                int matchIdx = FindMatchForObstacle(obs.index, visiting);
-
-                if (matchIdx != -1)
-                {
-                    collected[obs.index] = true;
-
-                    int mr = matchIdx / cols;
-                    int mc = matchIdx % cols;
-
-                    totalMove += obs.move;
-
-                    Debug.Log($"🗑 Loại bỏ vật cản {obs.value} tại ({obs.r},{obs.c}) match với số {board[matchIdx]} tại ({mr},{mc}) move={obs.move}");
-                }
-                else
-                {
-                    Debug.LogWarning($"⚠️ Không thể loại bỏ vật cản {obs.value} tại ({obs.r},{obs.c}) vì còn vật cản khác chắn đường");
-                    return; // Bỏ qua cặp hiện tại, vì không thể loại bỏ vật cản này
-                }
-            }
-
-
-            collected[bestPair.i1] = true;
-            collected[bestPair.i2] = true;
-            totalMove += bestPair.move;
-
-            Debug.Log($"✅ Match 5-5: ({bestPair.r1},{bestPair.c1}) ↔ ({bestPair.r2},{bestPair.c2}) move={bestPair.move}");
+            //ShortestPath(p.i1 / cols, p.i1 % cols, p.i2 / cols, p.i2 % cols);
+            Console.WriteLine($"Cặp giá trị 5 tại index: {p.i1} - {p.i2}");
         }
 
-        Debug.Log($"🎯 Hoàn thành! Tổng số lượt move: {totalMove}");
+    }
+    public List<(int i1, int i2)> FindAllPairs(int bestValue)
+    {
+        var pairs = new List<(int i1, int i2)>();
+        int n = board.Length;
+
+        for (int i = 0; i < n - 1; i++)
+        {
+            if (board[i] != bestValue) continue;
+
+            for (int j = i + 1; j < n; j++)
+            {
+                if (board[j] != bestValue) continue;
+
+                pairs.Add((i, j));
+            }
+        }
+        Console.WriteLine($"Tổng số cặp tìm được: {pairs.Count}");
+
+        return pairs;
     }
 
-    private List<(int i1, int r1, int c1, int i2, int r2, int c2, int move)> FindAllValidPairs()
+    private int ShortestPath(int r1, int c1, int r2, int c2)
     {
-        var result = new List<(int, int, int, int, int, int, int)>();
-
-        for (int i1 = 0; i1 < board.Length; i1++)
+        int sumPath = 0;
+        var obs = FindObstacles(r1, c1, r2, c2);
+        foreach (var ob in obs)
         {
-            if (collected[i1] || board[i1] != 5) continue;
-
-            int r1 = i1 / cols;
-            int c1 = i1 % cols;
-
-            for (int i2 = i1 + 1; i2 < board.Length; i2++)
+            int indexMatch = FindMoveMatchForObstacle(ob.index); //4-2
+            if (indexMatch != -1)
             {
-                if (collected[i2] || board[i2] != 5) continue;
+                collected[indexMatch] = true;
+                collected[ob.index] = true;
 
-                int r2 = i2 / cols;
-                int c2 = i2 % cols;
+                Debug.Log($"🗑 Loại bỏ vật cản {ob.value} tại ({ob.r},{ob.c}) match với số {board[indexMatch]} tại ({indexMatch/cols},{indexMatch%cols})"); //move
 
-                int move = GetMoveIfMatch(r1, c1, r2, c2);
-                if (move >= 0)
-                {
-                    result.Add((i1, r1, c1, i2, r2, c2, move));
-                }
+                sumPath++;
             }
         }
-
-        return result;
+        return 0;
     }
 
-    private List<(int index, int value, int r, int c, int move)> FindObstacles((int i1, int r1, int c1, int i2, int r2, int c2, int move) pair)
+    private List<(int index, int value, int r, int c)> FindObstacles(int r1, int c1, int r2, int c2)
     {
-        var obs = new List<(int, int, int, int, int)>();
-
-        if (pair.r1 == pair.r2) // ngang
-        {
-            int minC = Math.Min(pair.c1, pair.c2) + 1;
-            int maxC = Math.Max(pair.c1, pair.c2);
-            for (int c = minC; c < maxC; c++)
-            {
-                int idx = pair.r1 * cols + c;
-                if (!collected[idx] && board[idx] != 0)
-                {
-                    obs.Add((idx, board[idx], pair.r1, c, Math.Abs(c - pair.c1)));
-                }
-            }
-        }
-        else if (pair.c1 == pair.c2) // dọc
-        {
-            int minR = Math.Min(pair.r1, pair.r2) + 1;
-            int maxR = Math.Max(pair.r1, pair.r2);
-            for (int r = minR; r < maxR; r++)
-            {
-                int idx = r * cols + pair.c1;
-                if (!collected[idx] && board[idx] != 0)
-                {
-                    obs.Add((idx, board[idx], r, pair.c1, Math.Abs(r - pair.r1)));
-                }
-            }
-        }
-        else
-        {
-            int dr = pair.r2 - pair.r1;
-            int dc = pair.c2 - pair.c1;
-
-            if (Math.Abs(dr) == Math.Abs(dc)) // chéo chính hoặc chéo phụ
-            {
-                int stepR = dr > 0 ? 1 : -1;
-                int stepC = dc > 0 ? 1 : -1;
-                int steps = Math.Abs(dr);
-
-                for (int i = 1; i < steps; i++)
-                {
-                    int r = pair.r1 + i * stepR;
-                    int c = pair.c1 + i * stepC;
-                    int idx = r * cols + c;
-                    if (!collected[idx] && board[idx] != 0)
-                    {
-                        obs.Add((idx, board[idx], r, c, i));
-                    }
-                }
-            }
-        }
-
-        return obs;
-    }
-
-    private List<(int index, int value, int r, int c, int move)> FindObstaclesOnPath(int r1, int c1, int r2, int c2)
-    {
-        var obs = new List<(int, int, int, int, int)>();
+        var obs = new List<(int, int, int, int)>();
 
         if (r1 == r2) // ngang
         {
@@ -167,7 +111,7 @@ public class GemCollectorSolver
                 int idx = r1 * cols + c;
                 if (!collected[idx] && board[idx] != 0)
                 {
-                    obs.Add((idx, board[idx], r1, c, Math.Abs(c - c1)));
+                    obs.Add((idx, board[idx], r1, c));
                 }
             }
         }
@@ -180,7 +124,7 @@ public class GemCollectorSolver
                 int idx = r * cols + c1;
                 if (!collected[idx] && board[idx] != 0)
                 {
-                    obs.Add((idx, board[idx], r, c1, Math.Abs(r - r1)));
+                    obs.Add((idx, board[idx], r, c1));
                 }
             }
         }
@@ -202,124 +146,222 @@ public class GemCollectorSolver
                     int idx = r * cols + c;
                     if (!collected[idx] && board[idx] != 0)
                     {
-                        obs.Add((idx, board[idx], r, c, i));
+                        obs.Add((idx, board[idx], r, c));
                     }
                 }
             }
         }
-
         return obs;
     }
-
-    private int FindMatchForObstacle(int obsIndex, HashSet<int> visiting)
+    private List<(int index, int r, int c, int value)> SortObsByMove(List<(int index, int r, int c, int value)> obs, int currentR, int currentC)
     {
-        if (collected[obsIndex]) return -1;
-        if (visiting.Contains(obsIndex))
-            return -1;
+        var obsWithMove = new List<((int index, int r, int c, int value) ob, int move)>();
 
-        visiting.Add(obsIndex);
-
-        int r = obsIndex / cols;
-        int c = obsIndex % cols;
-        int val = board[obsIndex];
-
-        for (int i = 0; i < board.Length; i++)
+        foreach (var ob in obs)
         {
-            if (i == obsIndex || collected[i]) continue;
-
-            int r2 = i / cols;
-            int c2 = i % cols;
-            int val2 = board[i];
-
-            if (IsMatch(val, val2) && IsOnLine(r, c, r2, c2))
+            int move = GetMoveIfMatch(ob.r, ob.c, currentR, currentC);
+            if (move >= 1)
             {
-                int move = GetMoveIfMatch(r, c, r2, c2);
-                if (move >= 0)
+                obsWithMove.Add((ob, move));
+            }
+        }
+
+        obsWithMove.Sort((a, b) => a.move.CompareTo(b.move));
+
+        return obsWithMove.Select(x => x.ob).ToList();
+    }
+    private int FindMoveMatchForObstacle(int obsIndex)
+    {
+        int currentR = obsIndex / cols;
+        int currentC = obsIndex % cols;
+        var obs = GetValidCellsExcept(obsIndex);
+
+        var sortedObs = SortObsByMove(obs, currentR, currentC);
+
+        foreach (var ob in sortedObs)
+        {
+            int baseMove = GetMoveIfMatch(ob.r, ob.c, currentR, currentC);
+
+            if (baseMove == 1)
+            {
+                return ob.index; // trực tiếp trả về khi move=1
+            }
+            else if (baseMove > 1)
+            {
+                int clearedMoves = TryClearObstacle(ob.r, ob.c, currentR, currentC);
+                if (clearedMoves != -1)
                 {
-                    var obstacles = FindObstaclesOnPath(r, c, r2, c2);
-
-                    bool canRemoveAll = true;
-
-                    // Sắp xếp vật cản theo vị trí trên đường đi (từ gần đến xa) để loại bỏ đúng thứ tự
-                    obstacles = obstacles.OrderBy(o => GetDistanceAlongPath(r, c, o.r, o.c)).ToList();
-
-                    foreach (var obs in obstacles)
+                    int totalMove = baseMove + clearedMoves;
+                    if (totalMove == 0)
                     {
-                        // Đệ quy kiểm tra vật cản con, phải loại bỏ trước vật cản chính
-                        if (!CanRemoveObstacle(obs.index, visiting))
-                        {
-                            canRemoveAll = false;
-                            break;
-                        }
+                        return ob.index;
                     }
-
-                    if (canRemoveAll)
+                    else
                     {
-                        visiting.Remove(obsIndex);
-                        return i;
+                        // Nếu chưa đạt move=1, tiếp tục đệ quy để dọn tiếp
+                        int nextMatch = FindMoveMatchForObstacle(obsIndex);
+                        if (nextMatch != -1)
+                            return nextMatch;
                     }
                 }
             }
         }
 
-        visiting.Remove(obsIndex);
         return -1;
     }
-    // Hàm phụ tính khoảng cách điểm (r1,c1) đến (r2,c2) trên đường đi (để sắp xếp vật cản đúng thứ tự)
-    private int GetDistanceAlongPath(int r1, int c1, int r2, int c2)
+
+    private int TryClearObstacle(int r1, int c1, int r2, int c2)
     {
-        if (r1 == r2)
-            return Math.Abs(c2 - c1);
-        if (c1 == c2)
-            return Math.Abs(r2 - r1);
+        var cellsOnPath = GetCellsOnPathIndices(r1, c1, r2, c2, GetPathType(r1, c1, r2, c2));
+        int clearedCount = 0;
 
-        int dr = r2 - r1;
-        int dc = c2 - c1;
+        foreach (var cell in cellsOnPath)
+        {
+            int index = cell.index;
+            if (IsObstacle(index))
+            {
+                int nextIndex = FindMoveMatchForObstacle(index);
+                if (nextIndex == -1)
+                {
+                    return -1;
+                }
+                else
+                {
+                    ClearObstacleAt(nextIndex);
+                    clearedCount++; 
+                }
+            }
+        }
 
-        if (Math.Abs(dr) == Math.Abs(dc))
-            return Math.Abs(dr);
-
-        // Trường hợp không thẳng hàng (nếu có) trả về lớn để ưu tiên thấp
-        return int.MaxValue;
+        return clearedCount; 
     }
-    private bool CanRemoveObstacle(int obsIndex, HashSet<int> visiting)
+    private bool IsObstacle(int index)
     {
-        int matchIdx = FindMatchForObstacle(obsIndex, visiting);
-        return matchIdx != -1;
+        return !collected[index];
+    }
+    private void ClearObstacleAt(int index)
+    {
+        collected[index] = true; 
     }
     private bool IsMatch(int a, int b)
     {
         return (a == b) || (a + b == 10);
     }
-
-    private bool IsOnLine(int r1, int c1, int r2, int c2)
+    private List<(int index, int r, int c, int value)> GetValidCellsExcept(int obsIndex)
     {
-        if (r1 == r2) return true;
-        if (c1 == c2) return true;
-        int dr = r2 - r1;
-        int dc = c2 - c1;
-        if (Math.Abs(dr) == Math.Abs(dc)) return true;
-        return false;
-    }
+        var result = new List<(int, int, int, int)>();
 
+        for (int i = 0; i < board.Length; i++)
+        {
+            if (i == obsIndex || collected[i])
+                continue;
+
+            if (!IsMatch(GetValueAtIndex(i), GetValueAtIndex(obsIndex)))
+                continue;
+
+            int r = i / cols;
+            int c = i % cols;
+            int val = board[i];
+
+            result.Add((i, r, c, val));
+        }
+
+        return result;
+    }
+    private int GetValueAtIndex(int index)
+    {
+        if (index < 0 || index >= board.Length)
+            throw new ArgumentOutOfRangeException(nameof(index), "Index ngoài phạm vi mảng board.");
+
+        return board[index];
+    }
     private int GetMoveIfMatch(int r1, int c1, int r2, int c2)
     {
-        if (r1 == r2) return Math.Abs(c1 - c2) - 1;
-        if (c1 == c2) return Math.Abs(r1 - r2) - 1;
+        // Hàm phụ lấy các chỉ số ô nằm giữa 2 điểm
+        List<int> indicesBetween = GetCellsOnPathIndices(r1, c1, r2, c2, GetPathType(r1, c1, r2, c2))
+                                    .Select(cell => cell.index).ToList();
 
-        int dr = r2 - r1;
-        int dc = c2 - c1;
+        // Kiểm tra tất cả ô giữa có collected == true không
+        bool allCollected = indicesBetween.All(index => collected[index]);
 
-        if (Math.Abs(dr) == Math.Abs(dc) && (dr * dc > 0))
+        int distance = -1;
+
+        if (r1 == r2)
+            distance = Math.Abs(c1 - c2) - 1;
+        else if (c1 == c2)
+            distance = Math.Abs(r1 - r2) - 1;
+        else
         {
-            return Math.Abs(dr) - 1;
+            int dr = r2 - r1;
+            int dc = c2 - c1;
+
+            if (Math.Abs(dr) == Math.Abs(dc))
+                distance = Math.Abs(dr) - 1;
         }
 
-        if (Math.Abs(dr) == Math.Abs(dc) && (dr * dc < 0))
+        if (distance < 0)
+            return -1;
+
+        if (allCollected)
+            return 1; // Nếu tất cả ô giữa đã collected, coi như move = 1
+
+        return distance;
+    }
+    private string GetPathType(int r1, int c1, int r2, int c2)
+    {
+        if (r1 == r2)
+            return "Horizontal";
+        if (c1 == c2)
+            return "Vertical";
+        if (Math.Abs(r1 - r2) == Math.Abs(c1 - c2))
+            return "Diagonal";
+
+        return null; // Không phải 3 loại đường này
+    }
+    // Không bao gồm 2 điểm đầu cuối
+    private List<(int index, int value, int r, int c)> GetCellsOnPathIndices(int r1, int c1, int r2, int c2, string pathType)
+    {
+        var result = new List<(int, int, int, int)>();
+
+        if (pathType == "Horizontal")
         {
-            return Math.Abs(dr) - 1;
+            int minC = Math.Min(c1, c2) + 1;
+            int maxC = Math.Max(c1, c2) - 1;
+            for (int c = minC; c <= maxC; c++)
+            {
+                int index = r1 * cols + c;
+                int value = board[index]; // Giả sử bạn có mảng board lưu giá trị tại mỗi index
+                result.Add((index, value, r1, c));
+            }
+        }
+        else if (pathType == "Vertical")
+        {
+            int minR = Math.Min(r1, r2) + 1;
+            int maxR = Math.Max(r1, r2) - 1;
+            for (int r = minR; r <= maxR; r++)
+            {
+                int index = r * cols + c1;
+                int value = board[index];
+                result.Add((index, value, r, c1));
+            }
+        }
+        else if (pathType == "Diagonal")
+        {
+            int dr = (r2 > r1) ? 1 : -1;
+            int dc = (c2 > c1) ? 1 : -1;
+
+            int r = r1 + dr;
+            int c = c1 + dc;
+            while (r != r2 && c != c2)
+            {
+                int index = r * cols + c;
+                int value = board[index];
+                result.Add((index, value, r, c));
+                r += dr;
+                c += dc;
+            }
         }
 
-        return -1;
+        return result;
     }
 }

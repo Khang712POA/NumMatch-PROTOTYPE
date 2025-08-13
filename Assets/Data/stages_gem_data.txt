@@ -1,3 +1,5 @@
+Stage1:Pink=1,Orange=1
+Stage2:Orange=1,Purple=1
 Stage3:Pink=2,Orange=2
 Stage4:Orange=3,Purple=3
 Stage5:Pink=2,Orange=2,Purple=2

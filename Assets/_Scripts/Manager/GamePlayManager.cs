@@ -13,12 +13,15 @@ public class GamePlayManager : SaiMonoBehaviour
     [SerializeField] private int currentStageNext = 0;
     [SerializeField] private GemComponent[] currentGemTypes = new GemComponent[2];
     [SerializeField] Sprite[] imageGems = new Sprite[3];
-
+    [SerializeField] GameMode gameMode;
     //Get
+    public GameMode GameMode => gameMode;
     public int NumberGenerate => numberGenerate;
     public GemComponent[] CurrentGemTypes => currentGemTypes;
     public int CurrentStage => currentStage;
     public int CurrentStageNext => currentStageNext;
+
+
     public void DeductNumberAdd()
     {
         numberGenerate--;
@@ -37,7 +40,7 @@ public class GamePlayManager : SaiMonoBehaviour
     }
     public void ResetCurrentStage()
     {
-        currentStage = 0;
+        currentStage = 1;
     }
     protected override void Awake()
     {
@@ -48,6 +51,16 @@ public class GamePlayManager : SaiMonoBehaviour
             return;
         }
         instance = this; ;
+    }
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        GameManager.Instance.OnSetMode += OnSetMode;
+    }
+    protected override void OnDisable()
+    {
+        base.OnDisable();
+        GameManager.Instance.OnSetMode -= OnSetMode;
     }
     protected override void LoadComponents()
     {
@@ -157,5 +170,9 @@ public class GamePlayManager : SaiMonoBehaviour
         bool result = currentGemTypes.All(gem => gem != null && gem.Count == 0);
         Debug.Log($"All Gems Depleted: {result}");
         return result;
+    }
+    private void OnSetMode(GameMode gameMode)
+    {
+        this.gameMode = gameMode;
     }
 }
