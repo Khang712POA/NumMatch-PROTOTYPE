@@ -3080,8 +3080,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 715269178}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2.4707837, y: 2.9797719, z: 69.895226}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4290,6 +4290,7 @@ MonoBehaviour:
   tileNumbers: []
   tileNumbersShake: []
   selectedTiles: []
+  gameMode: 0
   holderTile: {fileID: 546593404}
   tilePrefab: {fileID: 5273208077606012851, guid: 446cf90dc0b13ca4191b6a12119cd5dd, type: 3}
   uiLineConnector: {fileID: 551419378}
@@ -6770,7 +6771,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1568363ffc44baa4581b9f7b35fc4d1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  input: 953814187134947876527915838447546856972569653461523292118741564897218632132645316974542558239279633
+  input: '953814187134947876527915838447546856972563653461524192118743564896218632132645316974542558239279633 '
 --- !u!1 &1739935655
 GameObject:
   m_ObjectHideFlags: 0

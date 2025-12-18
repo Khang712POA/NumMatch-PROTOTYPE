@@ -12,6 +12,7 @@ public class GemTest : MonoBehaviour
         PrintGrid(board);
         var solver = new GemCollectorSolver(board, 10, 9);
         solver.Solve(5);
+        Debug.Log("Total Move: " + solver.totalMove);
         LogCollectedArray(solver.collected, 9);
         //var moveAlgorithm = new MoveAlgorithm(board, 5, 9);
         //moveAlgorithm.SolveAndSaveTop10("Assets/Data/output.txt");

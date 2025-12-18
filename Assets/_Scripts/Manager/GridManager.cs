@@ -24,6 +24,8 @@ public class GridManager : SaiMonoBehaviour
     [SerializeField] private List<TileNumber> selectedTiles = new List<TileNumber>();
     public List<TileNumber> SelectedTiles => selectedTiles;
     private EquationType equationType = EquationType.None;
+    [SerializeField] private GameMode gameMode;
+    public GameMode GameMode => gameMode;
 
 
     [Space(2)]
@@ -61,8 +63,11 @@ public class GridManager : SaiMonoBehaviour
 
     protected override void Start()
     {
-
-        StartNewStage(GamePlayManager.Instance.CurrentStage, GameManager.Instance.CurrentMode);
+        if(GameManager.Instance != null)
+        {
+            gameMode = GameManager.Instance.CurrentMode;
+        }
+        StartNewStage(GamePlayManager.Instance.CurrentStage, gameMode);
     }
 
     protected override void LoadComponents()
@@ -143,7 +148,7 @@ public class GridManager : SaiMonoBehaviour
         bool hasRemainingMatches = FindAndCheckMatches(
             tileNumbers.Where(tile => tile.Value != -1).ToList()
         );
-        if(GameManager.Instance.CurrentMode == GameMode.Gem) //Clear Gem
+        if(gameMode == GameMode.Gem) //Clear Gem
         {
             if(GamePlayManager.Instance.AreAllGemsDepleted())
             {
@@ -160,7 +165,7 @@ public class GridManager : SaiMonoBehaviour
     }
     private void OnCheckWinGame()
     {
-        if (GameManager.Instance.CurrentMode == GameMode.Gem && GamePlayManager.Instance.AreAllGemsDepleted())
+        if (gameMode == GameMode.Gem && GamePlayManager.Instance.AreAllGemsDepleted())
         {
             UIManager.Instance.ActiveUIWin();
             return;
@@ -171,7 +176,7 @@ public class GridManager : SaiMonoBehaviour
         StageCompeteAnimationCoroutine(() =>
         {
             GamePlayManager.Instance.IncreaseNumberAdd();
-            StartNewStage(GamePlayManager.Instance.CurrentStage, GameManager.Instance.CurrentMode);
+            StartNewStage(GamePlayManager.Instance.CurrentStage, gameMode);
             UIManager.Instance.UpdateTextStage(GamePlayManager.Instance.CurrentStage);
             UIManager.Instance.DeactiveStageCompleteAnimation();
         });
@@ -920,7 +925,7 @@ public class GridManager : SaiMonoBehaviour
             targetTile.SetTileNumber(targetIndex, sourceTile.Value, sourceTile.NumberImage.sprite, false);
         }
 
-        if (GameManager.Instance.CurrentMode == GameMode.Gem)
+        if (gameMode == GameMode.Gem)
         {
             var tilesToSpawnGems = tileNumbers
                 .Skip(indexStart)
